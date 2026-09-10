@@ -1,0 +1,61 @@
+id,message,label
+1,Congratulations! You won a cash prize. Click here to claim now.,scam
+2,You have won Rs 50000 in our lucky draw. Claim your reward today.,scam
+3,Claim your free gift by clicking this link immediately.,scam
+4,You are selected for a special lottery prize. Pay a small fee to receive it.,scam
+5,Congratulations! Your mobile number won a surprise reward.,scam
+6,You have been chosen as a winner. Claim your prize before it expires.,scam
+7,Get a free shopping voucher now. Click the link to collect it.,scam
+8,You won an exclusive bonus. Send your details to receive the reward.,scam
+9,Lucky customer! You have won Rs 10000. Claim now.,scam
+10,Your number has been selected for a cash reward. Act now.,scam
+11,"Congratulations, you are today's lucky winner. Collect your gift.",scam
+12,Free reward waiting for you. Click now before the offer ends.,scam
+13,You have won a festival bonus. Claim your cash prize today.,scam
+14,Exclusive offer! Receive a free gift by clicking the link.,scam
+15,Your account has been selected for a special reward. Claim it now.,scam
+16,You are a lucky winner of Rs 25000. Pay processing charges to claim.,scam
+17,Claim your surprise coupon before midnight. You have been selected.,scam
+18,Congratulations! A cash reward is reserved for you. Claim immediately.,scam
+19,You won a free smartphone in our promotion. Click to claim.,scam
+20,Special lucky draw result: you are the winner. Collect your prize now.,scam
+21,Your bank account will be blocked. Verify your account immediately.,phishing
+22,Your account needs verification. Submit your details now.,phishing
+23,Send your OTP to verify your account.,phishing
+24,Urgent! Update your bank details to avoid account suspension.,phishing
+25,Your online banking access is locked. Login to restore access.,phishing
+26,Verify your card information immediately or your account will be disabled.,phishing
+27,Security alert: confirm your login details to keep your account active.,phishing
+28,Your bank profile requires an urgent update. Enter your details now.,phishing
+29,Unusual login detected. Click the link and verify your account.,phishing
+30,Your payment failed. Confirm your card and account information.,phishing
+31,Your account has been suspended. Login to verify your identity.,phishing
+32,Security verification required. Enter your OTP to continue.,phishing
+33,Your bank account will expire today. Verify your details immediately.,phishing
+34,Confirm your username and password to prevent account closure.,phishing
+35,Your card has been temporarily blocked. Verify your information now.,phishing
+36,Important security notice: login and confirm your account details.,phishing
+37,Your transaction is on hold. Verify your banking information.,phishing
+38,Account security check required. Submit your login information.,phishing
+39,Your internet banking session needs verification. Click to continue.,phishing
+40,We detected suspicious activity. Confirm your account details immediately.,phishing
+41,Are you coming to college tomorrow?,safe
+42,Please send me today's assignment.,safe
+43,Let's meet at the library at 2 PM.,safe
+44,Your class starts at 9 AM tomorrow.,safe
+45,Can you share the notes with me?,safe
+46,Please call me when you are free.,safe
+47,The project submission is tomorrow.,safe
+48,Let's have lunch after class.,safe
+49,Your parcel will be delivered tomorrow.,safe
+50,Meeting is scheduled at 10 AM.,safe
+51,Can you send me the Python notes?,safe
+52,I will reach college by 9 AM.,safe
+53,Please remind me about the project review.,safe
+54,Are we having lab class today?,safe
+55,Let's discuss the assignment after class.,safe
+56,Please bring your laptop tomorrow.,safe
+57,The seminar starts at 11 AM.,safe
+58,Can you share the timetable?,safe
+59,I will call you after the meeting.,safe
+60,Let's meet near the library after lunch.,safe

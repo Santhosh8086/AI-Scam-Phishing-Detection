@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI Scam & Phishing Detector</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f172a, #1e3a8a);
+            padding: 40px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            margin: auto;
+        }
+
+        /* HEADER */
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .shield {
+            font-size: 55px;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            font-size: 34px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #cbd5e1;
+            font-size: 16px;
+        }
+
+        /* MAIN CARD */
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+        }
+
+        /* TEXTAREA */
+
+        textarea {
+            width: 100%;
+            height: 170px;
+            padding: 18px;
+            border: 2px solid #d1d5db;
+            border-radius: 14px;
+            font-size: 16px;
+            resize: vertical;
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: #2563eb;
+        }
+
+        /* BUTTONS */
+
+        .detect-btn {
+            width: 100%;
+            margin-top: 18px;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            background: #2563eb;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .detect-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .clear-btn {
+            width: 100%;
+            margin-top: 10px;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: #64748b;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .clear-btn:hover {
+            background: #475569;
+        }
+
+        /* RESULT */
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 14px;
+            text-align: center;
+            background: #f1f5f9;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        /* INFORMATION GRID */
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .box {
+            padding: 18px;
+            background: #f8fafc;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            line-height: 1.5;
+        }
+
+        .box-title {
+            font-weight: bold;
+            color: #334155;
+            margin-bottom: 8px;
+        }
+
+        .score {
+            font-size: 26px;
+            font-weight: bold;
+            color: #dc2626;
+        }
+
+        /* RISK SCORE BAR */
+
+        .progress-container {
+            margin-top: 15px;
+        }
+
+        .progress-background {
+            width: 100%;
+            height: 14px;
+            background: #e2e8f0;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: {{ risk_score }}%;
+            background: #dc2626;
+            border-radius: 20px;
+            transition: width 0.5s ease;
+        }
+
+        /* REASON */
+
+        .reason-box {
+            margin-top: 15px;
+            padding: 18px;
+            background: #f8fafc;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            line-height: 1.6;
+        }
+
+        /* URL */
+
+        .url-box {
+            margin-top: 15px;
+            padding: 18px;
+            background: #f8fafc;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            line-height: 1.6;
+        }
+
+        /* MESSAGE */
+
+        .message-box {
+            margin-top: 15px;
+            padding: 18px;
+            background: #f8fafc;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            word-wrap: break-word;
+            line-height: 1.6;
+        }
+
+        /* FOOTER */
+
+        .footer {
+            text-align: center;
+            color: #94a3b8;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        /* MOBILE */
+
+        @media (max-width: 600px) {
+
+            .header h1 {
+                font-size: 26px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <div class="container">
+
+
+        <!-- HEADER -->
+
+        <div class="header">
+
+            <div class="shield">
+                🛡️
+            </div>
+
+            <h1>
+                AI Scam & Phishing Detector
+            </h1>
+
+            <p>
+                Protect yourself from suspicious messages and phishing links using AI.
+            </p>
+
+        </div>
+
+
+        <!-- MAIN CARD -->
+
+        <div class="card">
+
+
+            <!-- MESSAGE FORM -->
+
+            <form action="/predict" method="POST">
+
+                <textarea
+                    name="message"
+                    placeholder="Paste your SMS, email, or message here..."
+                    required>{{ message if message else "" }}</textarea>
+
+
+                <button
+                    class="detect-btn"
+                    type="submit">
+
+                    🔍 Analyze Message
+
+                </button>
+
+
+                <button
+                    class="clear-btn"
+                    type="button"
+                    onclick="window.location.href='/'">
+
+                    🔄 Clear
+
+                </button>
+
+            </form>
+
+
+            {% if result %}
+
+
+            <!-- RESULT -->
+
+            <div class="result">
+
+                {{ result }}
+
+            </div>
+
+
+            <!-- RISK INFORMATION -->
+
+            <div class="info-grid">
+
+
+                <!-- RISK LEVEL -->
+
+                <div class="box">
+
+                    <div class="box-title">
+                        ⚠️ Risk Level
+                    </div>
+
+                    <div class="score">
+
+                        {{ risk }}
+
+                    </div>
+
+                </div>
+
+
+                <!-- RISK SCORE -->
+
+                <div class="box">
+
+                    <div class="box-title">
+                        📊 Risk Score
+                    </div>
+
+                    <div class="score">
+
+                        {{ risk_score }} / 100
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PROGRESS BAR -->
+
+            <div class="box progress-container">
+
+                <div class="box-title">
+                    Risk Score Indicator
+                </div>
+
+                <div class="progress-background">
+
+                    <div class="progress-bar"></div>
+
+                </div>
+
+            </div>
+
+
+            <!-- REASON -->
+
+            <div class="reason-box">
+
+                <div class="box-title">
+                    💡 Why?
+                </div>
+
+                {{ reason }}
+
+            </div>
+
+
+            <!-- URL ANALYSIS -->
+
+            <div class="url-box">
+
+                <div class="box-title">
+                    🔗 URL Security Check
+                </div>
+
+                <p>
+                    {{ url_warning }}
+                </p>
+
+                <br>
+
+                <div class="box-title">
+                    URL Analysis
+                </div>
+
+                <p>
+                    {{ url_reason }}
+                </p>
+
+            </div>
+
+
+            <!-- ANALYZED MESSAGE -->
+
+            <div class="message-box">
+
+                <div class="box-title">
+                    📝 Analyzed Message
+                </div>
+
+                {{ message }}
+
+            </div>
+
+
+            {% endif %}
+
+
+        </div>
+
+
+        <!-- FOOTER -->
+
+        <div class="footer">
+
+            AI-powered text classification system for scam and phishing detection.
+
+        </div>
+
+
+    </div>
+
+</body>
+
+</html>
