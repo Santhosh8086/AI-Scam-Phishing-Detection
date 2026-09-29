@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI Scam & Phishing Detector</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #eef2ff, #f8fafc);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.10);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: #111827;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            font-size: 16px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 160px;
+            resize: vertical;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: #6366f1;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .analyze {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .clear {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .result {
+            display: none;
+            margin-top: 25px;
+            padding: 22px;
+            border-radius: 15px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+        }
+
+        .result-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        .risk {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .high {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .low {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .score {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 12px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 18px;
+        }
+
+        .progress {
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s;
+            background: #ef4444;
+        }
+
+        .section {
+            margin-top: 18px;
+        }
+
+        .section h3 {
+            margin-bottom: 7px;
+            color: #374151;
+        }
+
+        .section p {
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        .message-box {
+            background: #f3f4f6;
+            padding: 12px;
+            border-radius: 8px;
+            word-break: break-word;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 22px;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <div class="icon">🛡️</div>
+
+        <h1>AI Scam & Phishing Detector</h1>
+
+        <p class="subtitle">
+            Protect yourself from suspicious messages and phishing links using AI.
+        </p>
+    </div>
+
+    <textarea
+        id="message"
+        placeholder="Enter a message to analyze..."
+    ></textarea>
+
+    <div class="buttons">
+        <button class="analyze" onclick="analyzeMessage()">
+            Analyze Message
+        </button>
+
+        <button class="clear" onclick="clearMessage()">
+            Clear
+        </button>
+    </div>
+
+    <div class="result" id="result">
+
+        <div class="result-title" id="prediction">
+            Result
+        </div>
+
+        <div class="risk" id="riskLevel">
+            LOW RISK
+        </div>
+
+        <div class="score">
+            Risk Score: <span id="score">0</span> / 100
+        </div>
+
+        <div class="progress-container">
+            <div class="progress" id="progress"></div>
+        </div>
+
+        <div class="section">
+            <h3>🔎 Analysis</h3>
+            <p id="reason"></p>
+        </div>
+
+        <div class="section">
+            <h3>🔗 URL Security Check</h3>
+            <p id="urlAnalysis"></p>
+        </div>
+
+        <div class="section">
+            <h3>💬 Analyzed Message</h3>
+            <div class="message-box" id="analyzedMessage"></div>
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+async function analyzeMessage() {
+
+    const message = document.getElementById("message").value.trim();
+
+    if (!message) {
+        alert("Please enter a message.");
+        return;
+    }
+
+    try {
+
+        const response = await fetch("/predict", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                message: message
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+
+        document.getElementById("result").style.display = "block";
+
+        const prediction = document.getElementById("prediction");
+
+        prediction.textContent =
+            data.prediction.toUpperCase();
+
+        const riskLevel =
+            document.getElementById("riskLevel");
+
+        riskLevel.textContent =
+            data.risk_level;
+
+        riskLevel.className = "risk";
+
+        if (data.risk_level === "HIGH RISK") {
+            riskLevel.classList.add("high");
+        }
+        else if (data.risk_level === "MEDIUM RISK") {
+            riskLevel.classList.add("medium");
+        }
+        else {
+            riskLevel.classList.add("low");
+        }
+
+        document.getElementById("score").textContent =
+            data.risk_score;
+
+        document.getElementById("progress").style.width =
+            data.risk_score + "%";
+
+        document.getElementById("reason").textContent =
+            data.reason;
+
+        document.getElementById("urlAnalysis").textContent =
+            data.url_analysis.message;
+
+        document.getElementById("analyzedMessage").textContent =
+            data.message;
+
+    }
+    catch (error) {
+
+        alert(
+            "Unable to connect to the Flask server."
+        );
+
+        console.error(error);
+    }
+}
+
+
+function clearMessage() {
+
+    document.getElementById("message").value = "";
+
+    document.getElementById("result").style.display = "none";
+
+}
+
+</script>
+
+</body>
+</html>
