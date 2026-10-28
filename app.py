@@ -4,16 +4,22 @@ import re
 
 app = Flask(__name__)
 
-# Load trained ML model
-model = joblib.load("model/scam_phishing_model.pkl")
+# -----------------------------
+# Load Machine Learning Model
+# -----------------------------
+model = None
+model_load_error = None
+
+try:
+    model = joblib.load("model/scam_phishing_model.pkl")
+except Exception as e:
+    model_load_error = str(e)
 
 
-# ==========================================
-# URL ANALYSIS
-# ==========================================
-
+# -----------------------------
+# URL Analysis
+# -----------------------------
 def analyze_url(message):
-
     url_pattern = r"https?://\S+|www\.\S+"
     urls = re.findall(url_pattern, message)
 
@@ -24,15 +30,8 @@ def analyze_url(message):
         }
 
     suspicious_words = [
-        "login",
-        "verify",
-        "secure",
-        "update",
-        "account",
-        "bank",
-        "claim",
-        "reward",
-        "free"
+        "login", "verify", "secure", "update",
+        "account", "bank", "claim", "reward", "free"
     ]
 
     suspicious = False
@@ -44,6 +43,9 @@ def analyze_url(message):
             if word in url_lower:
                 suspicious = True
                 break
+
+        if suspicious:
+            break
 
     if suspicious:
         return {
@@ -61,40 +63,21 @@ def analyze_url(message):
     }
 
 
-# ==========================================
-# KEYWORD ANALYSIS
-# ==========================================
-
+# -----------------------------
+# Keyword Analysis
+# -----------------------------
 def keyword_analysis(message):
 
     scam_keywords = [
-        "won",
-        "winner",
-        "prize",
-        "reward",
-        "lottery",
-        "cashback",
-        "free gift",
-        "claim",
-        "investment",
-        "profit",
-        "loan",
-        "urgent payment"
+        "won", "winner", "prize", "reward", "lottery",
+        "cashback", "free gift", "claim", "investment",
+        "profit", "loan", "urgent payment"
     ]
 
     phishing_keywords = [
-        "verify",
-        "verification",
-        "kyc",
-        "password",
-        "otp",
-        "bank account",
-        "card details",
-        "login",
-        "suspended",
-        "blocked",
-        "account security",
-        "upi pin"
+        "verify", "verification", "kyc", "password", "otp",
+        "bank account", "card details", "login", "suspended",
+        "blocked", "account security", "upi pin"
     ]
 
     text = message.lower()
@@ -112,117 +95,191 @@ def keyword_analysis(message):
     return scam_matches, phishing_matches
 
 
-# ==========================================
-# HOME PAGE
-# ==========================================
-
+# -----------------------------
+# Home Page
+# -----------------------------
 @app.route("/")
 def home():
     return render_template("index.html")
 
 
-# ==========================================
-# PREDICTION
-# ==========================================
-
+# -----------------------------
+# Prediction API
+# -----------------------------
 @app.route("/predict", methods=["POST"])
 def predict():
 
-    data = request.get_json()
-
-    message = data.get("message", "").strip()
-
-    if not message:
+    # Check whether model loaded successfully
+    if model is None:
         return jsonify({
-            "error": "Please enter a message."
-        })
+            "error": "Machine learning model could not be loaded.",
+            "details": model_load_error
+        }), 503
 
-    # ML prediction
-    prediction = model.predict([message])[0]
+    try:
 
-    # Keyword analysis
-    scam_matches, phishing_matches = keyword_analysis(message)
+        # Safely read JSON request
+        data = request.get_json(silent=True)
 
-    # URL analysis
-    url_result = analyze_url(message)
+        if data is None:
+            return jsonify({
+                "error": "Invalid or missing JSON data."
+            }), 400
 
-    # ======================================
-    # RISK SCORE
-    # ======================================
+        # Check message field
+        message = data.get("message")
 
-    risk_score = 0
+        if message is None:
+            return jsonify({
+                "error": "Message field is required."
+            }), 400
 
-    if prediction in ["scam", "phishing"]:
-        risk_score += 60
+        # Check message type
+        if not isinstance(message, str):
+            return jsonify({
+                "error": "Message must be a text value."
+            }), 400
 
-    if scam_matches:
-        risk_score += 20
+        message = message.strip()
 
-    if phishing_matches:
-        risk_score += 20
+        # Check empty message
+        if not message:
+            return jsonify({
+                "error": "Please enter a message."
+            }), 400
 
-    if url_result["detected"]:
-        if url_result.get("status") == "Suspicious":
+        # -----------------------------
+        # Machine Learning Prediction
+        # -----------------------------
+        prediction = model.predict([message])[0]
+
+        # -----------------------------
+        # Additional Analysis
+        # -----------------------------
+        scam_matches, phishing_matches = keyword_analysis(message)
+
+        url_result = analyze_url(message)
+
+        # -----------------------------
+        # Risk Score Calculation
+        # -----------------------------
+        risk_score = 0
+
+        if prediction in ["scam", "phishing"]:
+            risk_score += 60
+
+        if scam_matches:
             risk_score += 20
+
+        if phishing_matches:
+            risk_score += 20
+
+        if url_result["detected"]:
+
+            if url_result.get("status") == "Suspicious":
+                risk_score += 20
+            else:
+                risk_score += 5
+
+        risk_score = min(risk_score, 100)
+
+        # -----------------------------
+        # Risk Level
+        # -----------------------------
+        if risk_score >= 70:
+            risk_level = "HIGH RISK"
+
+        elif risk_score >= 40:
+            risk_level = "MEDIUM RISK"
+
         else:
-            risk_score += 5
+            risk_level = "LOW RISK"
 
-    risk_score = min(risk_score, 100)
+        # -----------------------------
+        # Generate Reasons
+        # -----------------------------
+        reasons = []
 
-    # ======================================
-    # RISK LEVEL
-    # ======================================
+        if prediction == "scam":
+            reasons.append(
+                "Machine learning model detected scam-like content."
+            )
 
-    if risk_score >= 70:
-        risk_level = "HIGH RISK"
-    elif risk_score >= 40:
-        risk_level = "MEDIUM RISK"
-    else:
-        risk_level = "LOW RISK"
+        elif prediction == "phishing":
+            reasons.append(
+                "Machine learning model detected phishing-like content."
+            )
 
-    # ======================================
-    # REASON
-    # ======================================
+        else:
+            reasons.append(
+                "Machine learning model classified the message as safe."
+            )
 
-    reasons = []
+        if scam_matches:
+            reasons.append(
+                "Scam keywords detected: "
+                + ", ".join(scam_matches)
+            )
 
-    if prediction == "scam":
-        reasons.append("Machine learning model detected scam-like content.")
+        if phishing_matches:
+            reasons.append(
+                "Phishing keywords detected: "
+                + ", ".join(phishing_matches)
+            )
 
-    elif prediction == "phishing":
-        reasons.append("Machine learning model detected phishing-like content.")
+        if url_result["detected"]:
+            reasons.append(url_result["message"])
 
-    else:
-        reasons.append("Machine learning model classified the message as safe.")
+        # -----------------------------
+        # Successful Response
+        # -----------------------------
+        return jsonify({
+            "prediction": prediction,
+            "risk_score": risk_score,
+            "risk_level": risk_level,
+            "reason": " ".join(reasons),
+            "url_analysis": url_result,
+            "message": message
+        }), 200
 
-    if scam_matches:
-        reasons.append(
-            "Scam keywords detected: " +
-            ", ".join(scam_matches)
-        )
+    except Exception as e:
 
-    if phishing_matches:
-        reasons.append(
-            "Phishing keywords detected: " +
-            ", ".join(phishing_matches)
-        )
+        # Unexpected error handling
+        return jsonify({
+            "error": "An unexpected error occurred while analyzing the message.",
+            "details": str(e)
+        }), 500
 
-    if url_result["detected"]:
-        reasons.append(url_result["message"])
 
+# -----------------------------
+# Global Error Handlers
+# -----------------------------
+@app.errorhandler(400)
+def bad_request(error):
     return jsonify({
-        "prediction": prediction,
-        "risk_score": risk_score,
-        "risk_level": risk_level,
-        "reason": " ".join(reasons),
-        "url_analysis": url_result,
-        "message": message
-    })
+        "error": "Bad request.",
+        "message": "Please check the submitted data."
+    }), 400
 
 
-# ==========================================
-# RUN FLASK APP
-# ==========================================
+@app.errorhandler(404)
+def page_not_found(error):
+    return jsonify({
+        "error": "Page not found.",
+        "message": "The requested endpoint does not exist."
+    }), 404
 
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    return jsonify({
+        "error": "Internal server error.",
+        "message": "Something went wrong on the server."
+    }), 500
+
+
+# -----------------------------
+# Run Flask Application
+# -----------------------------
 if __name__ == "__main__":
     app.run(debug=True)
